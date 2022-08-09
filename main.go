@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"image/color"
 	"io"
 	"log"
 	"math/rand"
@@ -59,7 +60,7 @@ func getCaption() string {
 }
 
 func getPhotoURL() string {
-	cli := pexels.NewClient("123-abc")
+	cli := pexels.NewClient("abc-123")
 	ctx := context.Background()
 	ps, err := cli.PhotoService.Search(ctx, &pexels.PhotoParams{
 		Query:   "men",
@@ -93,6 +94,41 @@ func getPhoto() int64 {
 	return photo
 }
 
+func getFont() string {
+	fonts := []string{"Herr_Von_Muellerhoff/HerrVonMuellerhoff-Regular.ttf", "Homemade_Apple/HomemadeApple-Regular.ttf", "Inspiration/Inspiration-Regular.ttf", "Pacifico/Pacifico-regular.ttf"}
+	rand.Seed(time.Now().UnixNano())
+	min := 1
+	max := 4
+	font := fonts[rand.Intn(max-min)+min]
+	return font
+}
+
+func getFontDimensions(property string) float64 {
+	rand.Seed(time.Now().UnixNano())
+	if property == "x" {
+		min := 50
+		max := 400
+		dimension := rand.Intn(max-min)+min
+		return float64(dimension)
+	} else if property == "y" {
+		min := 125
+		max := 175
+		dimension := rand.Intn(max-min)+min
+		return float64(dimension)
+	} else if property == "width" {
+		min := 100
+		max := 150
+		dimension := rand.Intn(max-min)+min
+		return float64(dimension)
+	} else if property == "spacing" {
+		min := 4
+		max := 6
+		dimension := rand.Intn(max-min)+min
+		return float64(dimension)
+	}
+	return 0
+}
+
 func captionPhoto() {
 	im, err := gg.LoadImage("dude.jpg")
 	size := im.Bounds().Size()
@@ -103,11 +139,12 @@ func captionPhoto() {
 	dc.SetRGB(1, 1, 1)
 	dc.Clear()
 	dc.SetRGB(0, 0, 0)
-	if err := dc.LoadFontFace("Inspiration/Inspiration-Regular.ttf", 32); err != nil {
+	dc.SetColor(color.CMYK{0, 59, 29, 0})
+	if err := dc.LoadFontFace(getFont(), 20); err != nil {
 		panic(err)
 	}
 	dc.DrawImage(im, 0, 0)
-	dc.DrawString(getCaption(), 50, 20)
+	dc.DrawStringWrapped(getCaption(), getFontDimensions("x"), getFontDimensions("y"), 0.5, 0.5, getFontDimensions("width"), getFontDimensions("spacing"), gg.AlignCenter)
 	dc.SavePNG("out.png")
 }
 
